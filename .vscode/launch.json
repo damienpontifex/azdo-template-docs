@@ -10,7 +10,7 @@
 			"request": "launch",
 			"mode": "auto",
 			"program": "${workspaceFolder}/main.go",
-			"args": ["~/wooliesx/vsts-build-templates/graphql/check-schema.yaml"]
+			"args": ["~/wooliesx/vsts-build-templates/docker/build-and-push.yaml"]
 		}
 	]
 }

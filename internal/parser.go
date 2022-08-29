@@ -16,6 +16,10 @@ type Parameter struct {
 	Default     *string
 }
 
+type SimpleParameter struct {
+	Parameters map[string][]string
+}
+
 type AzDoTemplate struct {
 	Parameters []Parameter
 }
@@ -40,18 +44,37 @@ func Parse(s []byte) (*AzDoTemplate, error) {
 		}
 	}
 
-	if yamlParameters == nil {
+	if yamlParameters == nil || len(yamlParameters.Content) == 0 {
 		// No parameters found in template file
 		return &AzDoTemplate{Parameters: make([]Parameter, 0)}, nil
 	}
 
-	// Transform yaml nodes to parameter struct
-	for i := 0; i < len(yamlParameters.Content); i++ {
-		content := yamlParameters.Content[i]
-		parameter := Parameter{}
-		_ = content.Decode(&parameter)
-		parameter.Description = strings.ReplaceAll(content.HeadComment, "# ", "")
-		allParameters = append(allParameters, parameter)
+	if len(yamlParameters.Content[0].Content) == 0 {
+		// Key-value parameters
+		for i := 0; i < len(yamlParameters.Content); i += 2 {
+			key := yamlParameters.Content[i]
+			value := yamlParameters.Content[i+1]
+			parameter := Parameter{
+				Name:        key.Value,
+				Type:        typeFromTag(key.Tag),
+				Description: key.HeadComment,
+				Default:     &value.Value,
+			}
+
+			allParameters = append(allParameters, parameter)
+		}
+	} else {
+		// Array of objects as parameters
+		// Transform yaml nodes to parameter struct
+		for _, content := range yamlParameters.Content {
+			// Array of parameters with keys for metadata
+			// content := yamlParameters.Content[i]
+			parameter := Parameter{}
+			_ = content.Decode(&parameter)
+			parameter.Description = strings.ReplaceAll(content.HeadComment, "# ", "")
+
+			allParameters = append(allParameters, parameter)
+		}
 	}
 	return &AzDoTemplate{Parameters: allParameters}, err
 }
@@ -73,4 +96,14 @@ func (t *AzDoTemplate) ToMarkdownTable(writer io.Writer) {
 		table.Append([]string{v.Name, strings.ReplaceAll(v.Description, "\n", "<br/>"), v.Type, defaultDescription, fmt.Sprintf("%v", v.Default == nil)})
 	}
 	table.Render()
+}
+
+func typeFromTag(tag string) string {
+	switch tag {
+	case "!!str":
+		return "string"
+	case "!!bool":
+		return "boolean"
+	}
+	return ""
 }
