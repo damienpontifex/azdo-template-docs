@@ -33,9 +33,10 @@ func Parse(s []byte) (*AzDoTemplate, error) {
 	// Find the parameters node and then get the next one as the array
 	// of parameter values
 	var yamlParameters *yaml.Node
-	for i, v := range t.Content[0].Content {
-		if v.Value == "parameters" && len(t.Content[0].Content) > i+1 {
-			yamlParameters = t.Content[0].Content[i+1]
+	yamlMap := t.Content[0].Content
+	for i, v := range yamlMap {
+		if v.Value == "parameters" && len(yamlMap) > i+1 {
+			yamlParameters = yamlMap[i+1]
 		}
 	}
 
