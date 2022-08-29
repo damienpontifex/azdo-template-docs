@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"os"
+	"io"
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
@@ -40,8 +40,8 @@ func Parse(s []byte) (*AzDoTemplate, error) {
 	return &AzDoTemplate{Parameters: allParameters}, err
 }
 
-func (t *AzDoTemplate) ToMarkdownTable() {
-	table := tablewriter.NewWriter(os.Stdout)
+func (t *AzDoTemplate) ToMarkdownTable(writer io.Writer) {
+	table := tablewriter.NewWriter(writer)
 	table.SetHeader([]string{"Name", "Description", "Type", "Default", "Required"})
 	table.SetRowLine(true)
 	for _, v := range t.Parameters {

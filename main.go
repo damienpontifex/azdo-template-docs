@@ -2,26 +2,50 @@ package main
 
 import (
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/damienpontifex/azdo-template-docs/cmd"
+	"github.com/spf13/cobra"
 )
 
 func main() {
-	// if len(os.Args) < 2 {
-	// 	log.Fatalf("Please provide file path in first argument")
-	// 	os.Exit(1)
-	// }
+	var OutputFile string
+	var cli = &cobra.Command{
+		Use:   "azdo-template-docs [input file]",
+		Short: "Generate markdown table for input parameters of an Azure DevOps template file",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cobraCommand *cobra.Command, args []string) error {
+			filePath := args[0]
+			if strings.HasPrefix(filePath, "~/") {
+				home, _ := os.UserHomeDir()
+				filePath = filepath.Join(home, filePath[2:])
+			}
 
-	// filePath := os.Args[1]
-	file, err := os.ReadFile("/Users/ponti/wooliesx/vsts-build-templates/graphql/check-schema.yaml")
-	if err != nil {
-		// log.Fatalf("Failed to read file at %v", filePath)
-		os.Exit(1)
+			file, err := os.ReadFile(filePath)
+			if err != nil {
+				return err
+			}
+
+			parameters, err := cmd.Parse([]byte(file))
+			if err != nil {
+				return err
+			}
+
+			writer := os.Stdout
+			if len(OutputFile) > 0 {
+				writer, err = os.Create(OutputFile)
+				if err != nil {
+					return err
+				}
+			}
+
+			parameters.ToMarkdownTable(writer)
+
+			return nil
+		},
 	}
 
-	parameters, err := cmd.Parse(file)
-	// if err != nil {
-	// fmt.Printf("%v", parameters)
-	parameters.ToMarkdownTable()
-	// }
+	cli.Flags().StringVarP(&OutputFile, "output-file", "o", "", "Output file, if unused stdout will be used")
+	cli.Execute()
 }
