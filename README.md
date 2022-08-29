@@ -2,7 +2,7 @@
 
 Generate markdown table of Azure DevOps template file that has parameters
 
-```bash
+```
 Usage:
   azdo-template-docs [input file] [flags]
 
