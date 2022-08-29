@@ -59,7 +59,10 @@ func Parse(s []byte) (*AzDoTemplate, error) {
 func (t *AzDoTemplate) ToMarkdownTable(writer io.Writer) {
 	table := tablewriter.NewWriter(writer)
 	table.SetHeader([]string{"Name", "Description", "Type", "Default", "Required"})
-	table.SetRowLine(true)
+	table.SetAutoWrapText(false)
+	table.SetColumnSeparator("|")
+	table.SetCenterSeparator("|")
+	table.SetBorders(tablewriter.Border{Top: false, Bottom: false, Left: true, Right: true})
 
 	for _, v := range t.Parameters {
 		var defaultDescription string
@@ -67,7 +70,7 @@ func (t *AzDoTemplate) ToMarkdownTable(writer io.Writer) {
 			defaultDescription = *v.Default
 		}
 
-		table.Append([]string{v.Name, v.Description, v.Type, defaultDescription, fmt.Sprintf("%v", v.Default == nil)})
+		table.Append([]string{v.Name, strings.ReplaceAll(v.Description, "\n", "<br/>"), v.Type, defaultDescription, fmt.Sprintf("%v", v.Default == nil)})
 	}
 	table.Render()
 }

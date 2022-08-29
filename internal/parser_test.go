@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -195,5 +196,35 @@ func TestParser(t *testing.T) {
 		if v.Name != expected.Name || v.Type != expected.Type || v.Description != expected.Description {
 			t.Errorf("Parameters didn't match expectation.\nGot\n%v\nExpected\n%v", v, expectedParameters[i])
 		}
+	}
+}
+
+func TestRdender(t *testing.T) {
+	template, err := Parse([]byte(data))
+	if err != nil {
+		t.Fatalf("Got error %v", err)
+	}
+
+	var buf bytes.Buffer
+	template.ToMarkdownTable(&buf)
+
+	want := `|            NAME             |                                                                                  DESCRIPTION                                                                                  |  TYPE   | DEFAULT | REQUIRED |
+|-----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|---------|----------|
+| localSchemaFile             | If grabbing the SDL from a local file. If the schemaIntrospectionUrl parameter is also set<br/>then this will be the file in the default working directory the schema will be | string  |         | true     |
+| localSchemaIntrospectionUrl | If wanting to grab the SDL from a running server                                                                                                                              | string  |         | false    |
+| commandToStartLocalServer   | If wanting to start a local server to introspect the schema                                                                                                                   | string  |         | false    |
+| graph                       | The graph from Apollo Studio                                                                                                                                                  | string  |         | true     |
+| apikey                      | Apollo studio API Key                                                                                                                                                         | string  |         | true     |
+| variant                     | The variant of the graph in Apollo Studio                                                                                                                                     | string  |         | true     |
+| serviceName                 | The service name that appears in Apollo Studio                                                                                                                                | string  |         | true     |
+| introspectionURL            | Endpoint that service is available on when deployed                                                                                                                           | string  |         | false    |
+| options                     |                                                                                                                                                                               | string  |         | false    |
+| useRover                    | Whether to use the Apollo Rover CLI instead of the npm module                                                                                                                 | boolean | false   | false    |
+| failOnLintChecks            | Whether to fail the pipeline if the linting fails                                                                                                                             | boolean | false   | false    |
+| publishSchema               | Whether to publish the schema file                                                                                                                                            | boolean | false   | false    |
+`
+	got := buf.String()
+	if got != want {
+		t.Errorf("got:\n[%v]\nwant:\n[%v]\n", got, want)
 	}
 }
