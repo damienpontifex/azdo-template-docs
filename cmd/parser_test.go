@@ -118,13 +118,13 @@ steps:
 `
 
 func TestParser(t *testing.T) {
-	parameters, err := Parse([]byte(data))
+	template, err := Parse([]byte(data))
 	if err != nil {
 		t.Fatalf("Got error %v", err)
 	}
 
-	if len(parameters) != 12 {
-		t.Errorf("Length of parameters should be 12, got %v", len(parameters))
+	if len(template.Parameters) != 12 {
+		t.Errorf("Length of parameters should be 12, got %v", len(template.Parameters))
 	}
 
 	expectedParameters := []Parameter{
@@ -190,7 +190,7 @@ func TestParser(t *testing.T) {
 		},
 	}
 
-	for i, v := range parameters {
+	for i, v := range template.Parameters {
 		expected := expectedParameters[i]
 		if v.Name != expected.Name || v.Type != expected.Type || v.Description != expected.Description {
 			t.Errorf("Parameters didn't match expectation.\nGot\n%v\nExpected\n%v", v, expectedParameters[i])
