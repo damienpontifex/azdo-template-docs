@@ -29,7 +29,22 @@ func Parse(s []byte) (*AzDoTemplate, error) {
 	}
 
 	allParameters := make([]Parameter, 0)
-	yamlParameters := t.Content[0].Content[1]
+
+	// Find the parameters node and then get the next one as the array
+	// of parameter values
+	var yamlParameters *yaml.Node
+	for i, v := range t.Content[0].Content {
+		if v.Value == "parameters" && len(t.Content[0].Content) > i+1 {
+			yamlParameters = t.Content[0].Content[i+1]
+		}
+	}
+
+	if yamlParameters == nil {
+		// No parameters found in template file
+		return &AzDoTemplate{Parameters: make([]Parameter, 0)}, nil
+	}
+
+	// Transform yaml nodes to parameter struct
 	for i := 0; i < len(yamlParameters.Content); i++ {
 		content := yamlParameters.Content[i]
 		parameter := Parameter{}
@@ -44,11 +59,13 @@ func (t *AzDoTemplate) ToMarkdownTable(writer io.Writer) {
 	table := tablewriter.NewWriter(writer)
 	table.SetHeader([]string{"Name", "Description", "Type", "Default", "Required"})
 	table.SetRowLine(true)
+
 	for _, v := range t.Parameters {
 		var defaultDescription string
 		if v.Default != nil {
 			defaultDescription = *v.Default
 		}
+
 		table.Append([]string{v.Name, v.Description, v.Type, defaultDescription, fmt.Sprintf("%v", v.Default == nil)})
 	}
 	table.Render()
