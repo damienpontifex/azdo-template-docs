@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/damienpontifex/azdo-template-docs/cmd"
+	"github.com/damienpontifex/azdo-template-docs/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +27,7 @@ func main() {
 				return err
 			}
 
-			parameters, err := cmd.Parse([]byte(file))
+			parameters, err := internal.Parse([]byte(file))
 			if err != nil {
 				return err
 			}
